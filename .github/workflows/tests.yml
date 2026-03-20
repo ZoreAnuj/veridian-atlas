@@ -1,0 +1,64 @@
+name: Veridian Atlas - CI Tests
+
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # -------------------------------------------
+    # Cache dependencies to speed up CI builds
+    # -------------------------------------------
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    # -------------------------------------------
+    # Install dependencies
+    # -------------------------------------------
+    - name: Install project requirements
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov
+
+    # -------------------------------------------
+    # Execute tests with coverage enforcement
+    # -------------------------------------------
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=src/veridian_atlas \
+               --cov-report=xml \
+               --cov-report=term-missing \
+               --disable-warnings --maxfail=1 \
+               --cov-fail-under=25
+
+    # -------------------------------------------
+    # Upload coverage results as artifacts
+    # -------------------------------------------
+    - name: Upload coverage.xml artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage.xml
