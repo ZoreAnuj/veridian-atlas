@@ -24,7 +24,7 @@ dependencies = [
   "sentence-transformers==2.6.1",
   "torch==2.2.0",
   "transformers==4.41.2",
-  "httpx==0.24.1",
+  "httpx==0.28.1",
 ]
 
 # Optional dependency groups: pip install "veridian-atlas[dev]"
